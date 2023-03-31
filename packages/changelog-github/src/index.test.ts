@@ -61,6 +61,28 @@ const getChangeset = (content: string, commit: string | undefined) => {
   ] as const;
 };
 
+const getPicassoStyleChangeset = (commit: string | undefined) => {
+  return [
+    {
+      ...parse(
+        `---
+  pkg: "minor"
+  ---
+
+  ### Component
+
+  - a change
+  - another change
+  `
+      ),
+      id: "some-id",
+      commit,
+    },
+    "minor",
+    { repo: data.repo },
+  ] as const;
+};
+
 const data = {
   commit: "a085003",
   user: "Andarist",
@@ -83,7 +105,7 @@ describe.each([data.commit, "wrongcommit", undefined])(
               )
             )
           ).toEqual(
-            `\n\n- [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist)! - something\n`
+            `\n\n- [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist)!\nsomething\n`
           );
         });
       }
@@ -94,7 +116,7 @@ describe.each([data.commit, "wrongcommit", undefined])(
           ...getChangeset(`commit: ${data.commit}`, commitFromChangeset)
         )
       ).toEqual(
-        `\n\n- [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist)! - something\n`
+        `\n\n- [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist)!\nsomething\n`
       );
     });
   }
@@ -112,7 +134,7 @@ describe.each(["author", "user"])(
           )
         )
       ).toEqual(
-        `\n\n- [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@other](https://github.com/other)! - something\n`
+        `\n\n- [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@other](https://github.com/other)!\nsomething\n`
       );
     });
   }
@@ -129,7 +151,21 @@ it("with multiple authors", async () => {
   ).toMatchInlineSnapshot(`
     "
 
-    - [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist), [@mitchellhamilton](https://github.com/mitchellhamilton)! - something
+    - [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist), [@mitchellhamilton](https://github.com/mitchellhamilton)!
+    something
     "
+  `);
+});
+
+it("with Picasso style changeset", async () => {
+  expect(await getReleaseLine(...getPicassoStyleChangeset(data.commit)))
+    .toMatchInlineSnapshot(`
+    "
+
+    - [#1613](https://github.com/emotion-js/emotion/pull/1613) [\`a085003\`](https://github.com/emotion-js/emotion/commit/a085003) Thanks [@Andarist](https://github.com/Andarist)!
+    ### Component
+      
+        - a change
+        - another change"
   `);
 });
